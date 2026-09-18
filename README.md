@@ -1,12 +1,6 @@
 # xmip-core-identify-party
 
-Identify by party: reads the Party the Location's configuration names; a transport-layer identifier whose claim is inferred. A technology of
-[xmip-core-identify](https://github.com/IlleNilsson/xmip-core-identify).
-
-Declared and not yet written; `architecture.toml` carries the maturity. When
-it is written it implements `TransportIdentifier`, one mechanism at one gate (ADR-0050).
-What it may depend on is `repository-model.md` section 4 and ADR-0044: its
-capability, and no sibling.
+Identify by party: the Party the Location's configuration names; a transport-layer claim, inferred. A technology of [xmip-core-identify](https://github.com/IlleNilsson/xmip-core-identify).
 
 ## Toolchain
 
