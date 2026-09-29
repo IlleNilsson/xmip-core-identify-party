@@ -3,8 +3,8 @@
 //! Identify by party: whatever arrives here is from the Party the Location's
 //! configuration names.
 //!
-//! A Party is the estate's one place to say who a partner is (ADR-0019
-//! clause 4), and a Location that belongs to a single partner — their drop
+//! A Party is the estate's one place to say who another system is (ADR-0019
+//! clause 4), and a Location that belongs to a single Party — their drop
 //! folder, their mailbox, their leased line — can simply name that Party. This
 //! identifier is built from that name and presents it for every Stream that
 //! arrives on the Location, under [`xcore::mechanism::party`]. The value is
@@ -14,7 +14,7 @@
 //!
 //! The claim is **inferred**, never passed: the configuration said it and the
 //! sender said nothing. It is presented however the Stream arrived, because a
-//! scheduled pickup from a partner's server is as much that partner's as a
+//! scheduled pickup from a Party's server is as much that Party's as a
 //! connection from it, and can be identified no other way. Its sibling
 //! `endpoint` presents a free identity the same way; this one presents a name
 //! the registry is expected to know. Naming a Party here grants nothing: a
@@ -99,28 +99,28 @@ mod tests {
     #[test]
     fn what_arrives_on_the_location_is_from_the_party_the_configuration_names() {
         let stream = stream();
-        let arrival = StreamArrival::new(&stream, Arriving::Detected, "file:///in/partner-x", &[]);
+        let arrival = StreamArrival::new(&stream, Arriving::Detected, "file:///in/party-x", &[]);
 
-        let claim = ConfiguredParty::named("partner-x")
+        let claim = ConfiguredParty::named("party-x")
             .expect("a Party")
             .identify(&arrival)
             .expect("read")
             .expect("a claim");
 
         assert_eq!(claim.mechanism.name(), "party");
-        assert_eq!(claim.value, "partner-x");
+        assert_eq!(claim.value, "party-x");
         assert_eq!(claim.established, Established::Inferred);
         assert_eq!(claim.layer(), Layer::Transport);
         assert_eq!(
             claim.evidence,
-            vec![(LOCATION.to_string(), "file:///in/partner-x".to_string())]
+            vec![(LOCATION.to_string(), "file:///in/party-x".to_string())]
         );
     }
 
     #[test]
     fn a_party_named_by_its_id_is_presented_in_the_canonical_form() {
         let stream = stream();
-        let arrival = StreamArrival::new(&stream, Arriving::Scheduled, "sftp://partner/out", &[]);
+        let arrival = StreamArrival::new(&stream, Arriving::Scheduled, "sftp://party/out", &[]);
 
         let claim = ConfiguredParty::identified(PartyId::new(0x2a))
             .identify(&arrival)
@@ -135,14 +135,14 @@ mod tests {
     fn the_party_is_inferred_however_the_stream_arrived_and_whatever_the_sender_says() {
         let stream = stream();
         let facts = [("party".to_string(), "mallory".to_string())];
-        let party = ConfiguredParty::named("partner-x").expect("a Party");
+        let party = ConfiguredParty::named("party-x").expect("a Party");
 
         for arriving in [Arriving::Pushed, Arriving::Detected, Arriving::Scheduled] {
             let arrival = StreamArrival::new(&stream, arriving, "https://xmip/in", &facts);
 
             let claim = party.identify(&arrival).expect("read").expect("a claim");
 
-            assert_eq!(claim.value, "partner-x");
+            assert_eq!(claim.value, "party-x");
             assert_eq!(claim.established, Established::Inferred);
         }
     }
@@ -161,11 +161,11 @@ mod tests {
     fn naming_a_party_proves_nothing_and_attaches_no_proof() {
         let stream = stream();
         let arrival = StreamArrival::new(&stream, Arriving::Detected, "file:///in/x", &[]);
-        let party = ConfiguredParty::named(" partner-x ").expect("a Party");
+        let party = ConfiguredParty::named(" party-x ").expect("a Party");
 
         let claim = party.identify(&arrival).expect("read").expect("a claim");
 
-        assert_eq!(party.party(), "partner-x");
+        assert_eq!(party.party(), "party-x");
         assert!(!claim.mechanism.authenticates());
         assert!(format!("{claim:?}").contains("proof: []"));
     }
