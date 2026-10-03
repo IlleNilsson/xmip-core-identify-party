@@ -89,17 +89,12 @@ impl TransportIdentifier for ConfiguredParty {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use stream::Stream;
-    use xcore::{Arriving, Established, Layer, StreamId};
 
-    fn stream() -> Stream {
-        Stream::new(StreamId::new(1), b"<order/>".to_vec(), None)
-    }
+    use xcore::{Arriving, Established, Layer};
 
     #[test]
     fn what_arrives_on_the_location_is_from_the_party_the_configuration_names() {
-        let stream = stream();
-        let arrival = StreamArrival::new(&stream, Arriving::Detected, "file:///in/party-x", &[]);
+        let arrival = StreamArrival::new(Arriving::Detected, "file:///in/party-x", &[]);
 
         let claim = ConfiguredParty::named("party-x")
             .expect("a Party")
@@ -119,8 +114,7 @@ mod tests {
 
     #[test]
     fn a_party_named_by_its_id_is_presented_in_the_canonical_form() {
-        let stream = stream();
-        let arrival = StreamArrival::new(&stream, Arriving::Scheduled, "sftp://party/out", &[]);
+        let arrival = StreamArrival::new(Arriving::Scheduled, "sftp://party/out", &[]);
 
         let claim = ConfiguredParty::identified(PartyId::new(0x2a))
             .identify(&arrival)
@@ -133,12 +127,11 @@ mod tests {
 
     #[test]
     fn the_party_is_inferred_however_the_stream_arrived_and_whatever_the_sender_says() {
-        let stream = stream();
         let facts = [("party".to_string(), "mallory".to_string())];
         let party = ConfiguredParty::named("party-x").expect("a Party");
 
         for arriving in [Arriving::Pushed, Arriving::Detected, Arriving::Scheduled] {
-            let arrival = StreamArrival::new(&stream, arriving, "https://xmip/in", &facts);
+            let arrival = StreamArrival::new(arriving, "https://xmip/in", &facts);
 
             let claim = party.identify(&arrival).expect("read").expect("a claim");
 
@@ -159,8 +152,7 @@ mod tests {
 
     #[test]
     fn naming_a_party_proves_nothing_and_attaches_no_proof() {
-        let stream = stream();
-        let arrival = StreamArrival::new(&stream, Arriving::Detected, "file:///in/x", &[]);
+        let arrival = StreamArrival::new(Arriving::Detected, "file:///in/x", &[]);
         let party = ConfiguredParty::named(" party-x ").expect("a Party");
 
         let claim = party.identify(&arrival).expect("read").expect("a claim");
